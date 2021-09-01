@@ -52,6 +52,8 @@ int main(int argc, char **argv)
     trajectory_subscriber = nh.subscribe< geometry_msgs::PoseStamped>
     ("/desired_mavros_position_command", 10, desiredPoseCallback);
 
+    bool is_sim_ = true; //enable to test simulation only
+
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
@@ -82,23 +84,35 @@ int main(int argc, char **argv)
     ros::Time last_request = ros::Time::now();
 
     while(ros::ok()){
-        if( current_state.mode != "OFFBOARD" &&
-            (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");
-            }
-            last_request = ros::Time::now();
-        } else {
-            if( !current_state.armed &&
+    
+        if (is_sim_ == true ) {
+            if( current_state.mode != "OFFBOARD" &&
                 (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
+                if( set_mode_client.call(offb_set_mode) &&
+                    offb_set_mode.response.mode_sent){
+                    ROS_INFO("Offboard enabled");
                 }
+                last_request = ros::Time::now();
+            } else {
+                if( !current_state.armed &&
+                    (ros::Time::now() - last_request > ros::Duration(5.0))){
+                    if( arming_client.call(arm_cmd) &&
+                        arm_cmd.response.success){
+                        ROS_INFO("Vehicle armed");
+                    }
+                    last_request = ros::Time::now();
+                }
+            }
+        }
+        else {      // For real system, please disable is_sim_ == false
+            if ( current_state.mode == "OFFBOARD" && current_state.armed &&
+                (ros::Time::now() - last_request > ros::Duration(3.0))){
+                
+                ROS_INFO("Offboard enabled and Vehicle armed. Ready to take off!");
                 last_request = ros::Time::now();
             }
         }
+
 
         // std::cout << "start flying now to point" << std::endl;
 
