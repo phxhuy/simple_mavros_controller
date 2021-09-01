@@ -4,10 +4,9 @@
 
 	<node name="controller_node" pkg="simple_mavros_controller" type="simple_mavros_controller_node" output="screen" args=""/>
 
-	<node name="mavros" pkg="mavros" type="mavros_node" clear_params="true" output="screen">
-		<param name="fcu_url" value="udp://:14540@127.0.0.1:14557"/>
-		<!-- <param name="fcu_url" value="tcp://127.0.0.1:5760"/> -->
-		<param name="system_id" value="2" />
-	</node>
+	<include file="$(find mavros)/launch/px4.launch">
+				<arg name="fcu_url" value="/dev/ttyTHS2:921600"/>
+	</include>
+
 
 </launch>
