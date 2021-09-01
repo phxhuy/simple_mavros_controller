@@ -15,7 +15,7 @@ mavros_msgs::State current_state;
 ros::Subscriber state_sub, trajectory_subscriber;
 ros::Publisher local_pos_pub;
 
-Eigen::Vector4d position_d;
+Eigen::VectorXd position_d(7);
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
@@ -25,7 +25,10 @@ void desiredPoseCallback(geometry_msgs::PoseStamped position_trajectory_msg){
     position_d  <<  position_trajectory_msg.pose.position.x,
                     position_trajectory_msg.pose.position.y, 
                     position_trajectory_msg.pose.position.z, 
-                    0.28;
+                    position_trajectory_msg.pose.orientation.x, 
+                    position_trajectory_msg.pose.orientation.y, 
+                    position_trajectory_msg.pose.orientation.z, 
+                    position_trajectory_msg.pose.orientation.w;
 }
 
 
