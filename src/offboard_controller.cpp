@@ -113,6 +113,7 @@ int main(int argc, char **argv)
             }
         }
 
+        position_d << 0, 0, 3, 0, 0, 0, 1;
 
         // std::cout << "start flying now to point" << std::endl;
 
