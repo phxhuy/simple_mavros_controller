@@ -15,20 +15,8 @@ mavros_msgs::State current_state;
 ros::Subscriber state_sub, trajectory_subscriber;
 ros::Publisher local_pos_pub;
 
-Eigen::VectorXd position_d(7);
-
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
-}
-
-void desiredPoseCallback(geometry_msgs::PoseStamped position_trajectory_msg){
-    position_d  <<  position_trajectory_msg.pose.position.x,
-                    position_trajectory_msg.pose.position.y, 
-                    position_trajectory_msg.pose.position.z, 
-                    position_trajectory_msg.pose.orientation.x, 
-                    position_trajectory_msg.pose.orientation.y, 
-                    position_trajectory_msg.pose.orientation.z, 
-                    position_trajectory_msg.pose.orientation.w;
 }
 
 
@@ -46,13 +34,6 @@ int main(int argc, char **argv)
             ("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
-
-    // test trajectory
-
-    trajectory_subscriber = nh.subscribe< geometry_msgs::PoseStamped>
-    ("/desired_mavros_position_command", 10, desiredPoseCallback);
-
-    bool is_sim_ = true; //enable to test simulation only
 
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
@@ -85,34 +66,26 @@ int main(int argc, char **argv)
 
     while(ros::ok()){
     
-        if (is_sim_ == true ) {
-            if( current_state.mode != "OFFBOARD" &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( set_mode_client.call(offb_set_mode) &&
-                    offb_set_mode.response.mode_sent){
-                    ROS_INFO("Offboard enabled");
-                }
-                last_request = ros::Time::now();
-            } else {
-                if( !current_state.armed &&
-                    (ros::Time::now() - last_request > ros::Duration(5.0))){
-                    if( arming_client.call(arm_cmd) &&
-                        arm_cmd.response.success){
-                        ROS_INFO("Vehicle armed");
-                    }
-                    last_request = ros::Time::now();
-                }
+        if( current_state.mode != "OFFBOARD" &&
+            (ros::Time::now() - last_request > ros::Duration(5.0))){
+            if( set_mode_client.call(offb_set_mode) &&
+                offb_set_mode.response.mode_sent){
+                ROS_INFO("Offboard enabled");
             }
-        }
-        else {      // For real system, please disable is_sim_ == false
-            if ( current_state.mode == "OFFBOARD" && current_state.armed &&
-                (ros::Time::now() - last_request > ros::Duration(3.0))){
-                
-                ROS_INFO("Offboard enabled and Vehicle armed. Ready to take off!");
+            last_request = ros::Time::now();
+        } else {
+            if( !current_state.armed &&
+                (ros::Time::now() - last_request > ros::Duration(5.0))){
+                if( arming_client.call(arm_cmd) &&
+                    arm_cmd.response.success){
+                    ROS_INFO("Vehicle armed");
+                }
                 last_request = ros::Time::now();
             }
         }
 
+
+        Eigen::VectorXd position_d(7);
         position_d << 0, 0, 3, 0, 0, 0, 1;
 
         // std::cout << "start flying now to point" << std::endl;
