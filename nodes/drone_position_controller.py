@@ -24,13 +24,13 @@ class PX4Controller:
             r.sleep()
 
         # Now we can initialize the drone
-        self.initialize_drone()
+        # self.initialize_drone()
         
         
 
     def control_callback(self, event):
         print 'Timer called at ' + str(event.current_real)  
-        self.postion_control(0.0, 0.0, 3.0)
+        self.postion_control(0.0, 0.0, 2.0)
                                 
 
     def postion_control(self, x, y, z): # simple position control
